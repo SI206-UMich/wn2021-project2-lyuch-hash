@@ -97,7 +97,6 @@ def summarize_best_books(filepath):
         c=i.get('href',None)
         tup=(a,b,c)
         catelist.append(tup)
-    return catelist
     
         
     
