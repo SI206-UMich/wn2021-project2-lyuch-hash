@@ -48,7 +48,7 @@ def get_search_links():
             lst.append('https://www.goodreads.com'+gg)
     
     
-    print(lst)       
+           
     return lst
     
     
@@ -65,7 +65,7 @@ def get_book_summary(book_url):
     tag_1=soup.find('h1').text.strip('\n').strip()
     tag_2=soup.find('a',class_='authorName').text.strip('\n').strip()
     tag=soup.find('div',class_='row')
-    print(tag.text)
+    
     tag_3=tag.find('span',itemprop="numberOfPages").text.strip('\n').split()
     tag_3=int(tag_3[0])
     tup=(tag_1,tag_2,tag_3)
@@ -84,19 +84,20 @@ def summarize_best_books(filepath):
     """    
     catelist=[]
     
-    with open(filepath) as f:
+    with open(filepath,encoding='utf8') as f:
          soup=BeautifulSoup(f,'html.parser')
     lt=soup.find('div',class_="categoryContainer")
     lst=lt.find_all('div',class_="category clearFix")
     for i in lst:
         ii=i.find('a')
         tup=tuple()
-        a=ii.find('h4',class_="category__copy").text
+        a=ii.find('h4',class_="category__copy").text.strip('\n')
         bb=ii.find('div',class_="category__winnerImageContainer")
         b=bb.find('img')['alt']
-        c=i.get('href',None)
+        c=ii.get('href',None)
         tup=(a,b,c)
         catelist.append(tup)
+    return catelist
     
         
     
@@ -200,6 +201,7 @@ class TestCases(unittest.TestCase):
     
     def test_summarize_best_books(self):
         # call summarize_best_books and save it to a variable
+        filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)), 'best_books_2020.htm')
         var=summarize_best_books(filepath)
         # check that we have the right number of best books (20)
         self.assertEqual(len(var),20)
@@ -210,7 +212,7 @@ class TestCases(unittest.TestCase):
             # check that each tuple has a length of 3
         self.assertEqual(var[0],('Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'))
         # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
-        self.assertEqual(var[0],('Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'))
+        self.assertEqual(var[-1],('Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'))
         # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
 
 
