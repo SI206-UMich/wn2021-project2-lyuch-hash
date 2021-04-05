@@ -48,22 +48,10 @@ def get_search_links():
             lst.append('https://www.goodreads.com'+gg)
     
     
-         
+    print(lst)       
     return lst
     
-def get_book_summary(book_url):
- 
     
-    r = requests.get(book_url)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    tup=tuple()
-    tag_1=soup.find('h1').text.strip('\n').strip()
-    tag_2=soup.find('a',class_='authorName').text.strip('\n').strip()
-    tag=soup.find('div',class_='row')
-    tag_3=tag.find_all('span')[2].text.strip('\n').split()
-    tag_3=int(tag_3[0])
-    tup=(tag_1,tag_2,tag_3)
-    print(tup) 
     
     
 
@@ -77,10 +65,11 @@ def get_book_summary(book_url):
     tag_1=soup.find('h1').text.strip('\n').strip()
     tag_2=soup.find('a',class_='authorName').text.strip('\n').strip()
     tag=soup.find('div',class_='row')
-    tag_3=tag.find_all('span')[2].text.strip('\n').split()
+    print(tag.text)
+    tag_3=tag.find('span',itemprop="numberOfPages").text.strip('\n').split()
     tag_3=int(tag_3[0])
     tup=(tag_1,tag_2,tag_3)
-    print(tup)
+    return tup
 
 def summarize_best_books(filepath):
     """
@@ -92,7 +81,26 @@ def summarize_best_books(filepath):
     https://www.goodreads.com/choiceawards/best-fiction-books-2020, then you should append 
     ("Fiction", "The Testaments (The Handmaid's Tale, #2)", "https://www.goodreads.com/choiceawards/best-fiction-books-2020") 
     to your list of tuples.
-    """
+    """    
+    catelist=[]
+    
+    with open(filepath) as f:
+         soup=BeautifulSoup(f,'html.parser')
+    lt=soup.find('div',class_="categoryContainer")
+    lst=lt.find_all('div',class_="category clearFix")
+    for i in lst:
+        ii=i.find('a')
+        tup=tuple()
+        a=ii.find('h4',class_="category__copy").text
+        bb=ii.find('div',class_="category__winnerImageContainer")
+        b=bb.find('img')['alt']
+        c=i.get('href',None)
+        tup=(a,b,c)
+        catelist.append(tup)
+    return catelist
+    
+        
+    
     
     
     
@@ -166,7 +174,46 @@ class TestCases(unittest.TestCase):
             self.assertTrue(i.startswith("https://www.goodreads.com/book/show/"))
         
    # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
+
+    def test_get_book_summary(self):
+        # create a local variable – summaries – a list containing the results from get_book_summary()
+        # for each URL in TestCases.search_urls (should be a list of tuples)
+        
+        summaries=[]
+        a=get_search_links()
+        for i in a:
+            summaries.append(get_book_summary(i))
+        
+        
+        # check that the number of book summaries is correct (10)
+        self.assertEqual(len(summaries),10)
+            # check that each item in the list is a tuple
+        for u in summaries:
+            self.assertEqual(type(u),tuple)
+            # check that each tuple has 3 elements
+            self.assertEqual(len(u),3)
+            # check that the first two elements in the tuple are string
+            self.assertTrue((type(u[0])==str)and(type(u[1])==str))
+            # check that the third element in the tuple, i.e. pages is an int
+            self.assertTrue(type(u[2])==int)
+            # check that the first book in the search has 337 pages
+        self.assertEqual(summaries[0][2],337)
     
+    def test_summarize_best_books(self):
+        # call summarize_best_books and save it to a variable
+        var=summarize_best_books(filepath)
+        # check that we have the right number of best books (20)
+        self.assertEqual(len(var),20)
+            # assert each item in the list of best books is a tuple
+        for i in var:
+            self.assertEqual(type(i),tuple)
+            self.assertEqual(len(i),3)
+            # check that each tuple has a length of 3
+        self.assertEqual(var[0],('Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'))
+        # check that the first tuple is made up of the following 3 strings:'Fiction', "The Midnight Library", 'https://www.goodreads.com/choiceawards/best-fiction-books-2020'
+        self.assertEqual(var[0],('Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'))
+        # check that the last tuple is made up of the following 3 strings: 'Picture Books', 'Antiracist Baby', 'https://www.goodreads.com/choiceawards/best-picture-books-2020'
+
 
     def test_write_csv(self):
         # call get_titles_from_search_results on search_results.htm and save the result to a variable
